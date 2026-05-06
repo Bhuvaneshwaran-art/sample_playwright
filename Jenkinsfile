@@ -36,8 +36,8 @@ pipeline {
         stage('Run Tests') {
             steps {
                 bat '''
-                    call venv\\Scripts\\activate.bat
-                    pytest tests/ --browser chromium -v
+                    cd my-playwright-project
+            pytest tests\\ --browser chromium -v
                 '''
             }
         }
