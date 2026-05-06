@@ -10,18 +10,14 @@ pipeline {
 
         stage('Setup Python') {
             steps {
-                bat '''
-                    python -m venv venv
-                    call venv\\Scripts\\activate
-                    pip install --upgrade pip
-                '''
+                bat 'py -m venv venv'
             }
         }
 
         stage('Install Dependencies') {
             steps {
                 bat '''
-                    call venv\\Scripts\\activate
+                    call venv\\Scripts\\activate.bat
                     pip install playwright pytest pytest-playwright
                     pip install -r requirements.txt
                 '''
@@ -31,7 +27,7 @@ pipeline {
         stage('Install Browsers') {
             steps {
                 bat '''
-                    call venv\\Scripts\\activate
+                    call venv\\Scripts\\activate.bat
                     playwright install chromium
                 '''
             }
@@ -40,7 +36,7 @@ pipeline {
         stage('Run Tests') {
             steps {
                 bat '''
-                    call venv\\Scripts\\activate
+                    call venv\\Scripts\\activate.bat
                     pytest tests/ --browser chromium -v
                 '''
             }
