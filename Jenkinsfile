@@ -10,9 +10,9 @@ pipeline {
 
         stage('Setup Python') {
             steps {
-                sh '''
-                    python3 -m venv venv
-                    . venv/bin/activate
+                bat '''
+                    python -m venv venv
+                    call venv\\Scripts\\activate
                     pip install --upgrade pip
                 '''
             }
@@ -20,8 +20,8 @@ pipeline {
 
         stage('Install Dependencies') {
             steps {
-                sh '''
-                    . venv/bin/activate
+                bat '''
+                    call venv\\Scripts\\activate
                     pip install playwright pytest pytest-playwright
                     pip install -r requirements.txt
                 '''
@@ -30,18 +30,17 @@ pipeline {
 
         stage('Install Browsers') {
             steps {
-                sh '''
-                    . venv/bin/activate
+                bat '''
+                    call venv\\Scripts\\activate
                     playwright install chromium
-                    playwright install-deps chromium
                 '''
             }
         }
 
         stage('Run Tests') {
             steps {
-                sh '''
-                    . venv/bin/activate
+                bat '''
+                    call venv\\Scripts\\activate
                     pytest tests/ --browser chromium -v
                 '''
             }
@@ -50,7 +49,7 @@ pipeline {
 
     post {
         always {
-            echo 'Done'
+            echo 'Pipeline complete'
         }
         failure {
             echo 'Tests failed!'
