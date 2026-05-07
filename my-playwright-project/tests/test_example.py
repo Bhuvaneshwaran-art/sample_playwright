@@ -1,32 +1,29 @@
 import pytest
-from playwright.sync_api import Playwright, sync_playwright, expect
+from playwright.sync_api import Page, expect
 
-def run(playwright: Playwright) -> None:
-    browser = playwright.chromium.launch(headless=False)
-    context = browser.new_context()
-    page = context.new_page()
+def test_login(page: Page) -> None:
+    # Login
     page.goto("https://payv2.dev.adaptivegroups.asia/")
     page.get_by_role("textbox", name="Type Your Company Code").fill("Sidco")
     page.get_by_role("textbox", name="Type Your User Name").fill("Naveen")
     page.get_by_role("textbox", name="Type Your Password").fill("Adaptive*123")
     page.locator("input[value='Log In']").click()
-    page.wait_for_timeout(5000)
+    page.wait_for_load_state("networkidle")
+
+    # Navigate to Company
     page.goto("https://payv2.dev.adaptivegroups.asia/Company")
     page.get_by_title("Details").click()
     page.get_by_role("button", name="Organization Chart").click()
+
+    # Interact with dropdown
     page.locator("#structure-dropdown").select_option("false")
-    page.wait_for_timeout(5000)
+    page.wait_for_load_state("networkidle")
     page.locator("#structure-dropdown").select_option("hierarchy")
-    page.wait_for_timeout(5000)
+    page.wait_for_load_state("networkidle")
+
+    # Button interactions
     page.get_by_role("button", name="Reset").click()
     page.get_by_role("button", name="Collapse").click()
-    page.wait_for_timeout(5000)
+    page.wait_for_load_state("networkidle")
     page.get_by_role("button", name="Expand").click()
-    
-    # ---------------------
-    context.close()
-    browser.close()
-
-
-with sync_playwright() as playwright:
-    run(playwright)
+    page.wait_for_load_state("networkidle")
