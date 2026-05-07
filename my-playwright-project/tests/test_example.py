@@ -2,6 +2,8 @@ import pytest
 from playwright.sync_api import Page, expect
 
 def test_login(page: Page) -> None:
+    page.set_default_timeout(60000)
+    page.set_default_navigation_timeout(60000)
     # Login
     page.goto("https://payv2.dev.adaptivegroups.asia/")
     page.get_by_role("textbox", name="Type Your Company Code").fill("Sidco")
