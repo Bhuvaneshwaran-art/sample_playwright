@@ -13,7 +13,7 @@ def test_login(page: Page) -> None:
 
     # Navigate to Company
     page.goto("https://payv2.dev.adaptivegroups.asia/Company")
-    page.wait_for_selector("[title='Details']", state="visible")
+    page.wait_for_load_state("domcontentloaded")
     page.locator("[title='Details']").click()
     page.get_by_role("button", name="Organization Chart").click()
 
