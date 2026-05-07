@@ -10,11 +10,11 @@ def test_login(page: Page) -> None:
     page.get_by_role("textbox", name="Type Your User Name").fill("Naveen")
     page.get_by_role("textbox", name="Type Your Password").fill("Adaptive*123")
     page.locator("input[value='Log In']").click()
-    page.wait_for_load_state("networkidle")
 
     # Navigate to Company
     page.goto("https://payv2.dev.adaptivegroups.asia/Company")
-    page.get_by_title("Details").click()
+    page.wait_for_selector("[title='Details']", state="visible")
+    page.locator("[title='Details']").click()
     page.get_by_role("button", name="Organization Chart").click()
 
     # Interact with dropdown
