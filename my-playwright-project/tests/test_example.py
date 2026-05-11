@@ -25,13 +25,21 @@ def test_login(page: Page) -> None:
     page.wait_for_load_state("domcontentloaded")
     page.wait_for_timeout(5000)
 
-    # Step 3 — Screenshot to verify page loaded
-    page.screenshot(path="debug_company.png")
+     # Check if Details is inside iframe
+    frames = page.frames
+    print("\n=== ALL FRAMES ON PAGE ===")
+    for frame in frames:
+        print(frame.name, frame.url)
 
-    # Step 4 — Click Details
-    page.wait_for_selector("[title='Details']", state="visible")
-    page.locator("[title='Details']").click()
-    page.wait_for_load_state("domcontentloaded")
+    # Try clicking Details inside each frame
+    for frame in page.frames:
+        try:
+            if frame.locator("[title='Details']").count() > 0:
+                print(f"\n✅ Found Details in frame: {frame.url}")
+                frame.locator("[title='Details']").first.click()
+                break
+        except Exception as e:
+            print(f"Frame error: {e}")
     page.wait_for_timeout(5000)
 
     # Step 5 — Organization Chart
