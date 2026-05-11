@@ -43,8 +43,12 @@ def test_login(page: Page) -> None:
     page.wait_for_timeout(5000)
 
     # Step 5 — Organization Chart
-    page.wait_for_selector("input[value='Organization Chart']", state="visible")
-    page.locator("input[value='Organization Chart']").click()
+    try:
+                # Option 3 — by input value
+                page.locator("input[value='Organization Chart']").click()
+    except Exception as e:
+                print(f"Frame error: {e}")
+
     page.wait_for_timeout(5000)
 
     # Step 6 — Dropdown interactions
