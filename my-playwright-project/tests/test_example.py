@@ -54,14 +54,14 @@ def test_login(page: Page) -> None:
     # Step 6 — Dropdown interactions
     page.wait_for_selector("#structure-dropdown", state="visible")
     page.locator("#structure-dropdown").select_option("false")
-    page.wait_for_timeout(3000)
+    page.wait_for_timeout(5000)
     page.locator("#structure-dropdown").select_option("hierarchy")
-    page.wait_for_timeout(3000)
+    page.wait_for_timeout(5000)
 
     # Step 7 — Button interactions
     page.get_by_role("button", name="Reset").click()
-    page.wait_for_timeout(2000)
+    page.wait_for_timeout(5000)
     page.get_by_role("button", name="Collapse").click()
-    page.wait_for_timeout(2000)
+    page.wait_for_timeout(5000)
     page.get_by_role("button", name="Expand").click()
-    page.wait_for_timeout(2000)
+    page.wait_for_timeout(5000)
