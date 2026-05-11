@@ -43,7 +43,7 @@ def test_login(page: Page) -> None:
     page.wait_for_timeout(5000)
 
     # Step 5 — Organization Chart
-    page.locator("//input[value='Organization Chart']").click()
+    page.locator("input[value='Organization Chart']").click()
     page.wait_for_timeout(5000)
 
     # Step 6 — Dropdown interactions
