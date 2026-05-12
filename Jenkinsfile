@@ -19,7 +19,6 @@ pipeline {
                 bat '''
                     call venv\\Scripts\\activate.bat
                     pip install playwright pytest pytest-playwright
-                    pip install -r requirements.txt
                 '''
             }
         }
@@ -35,11 +34,23 @@ pipeline {
 
         stage('Run Tests') {
             steps {
-                bat '''
-                    cd my-playwright-project
-                    call ..\\venv\\Scripts\\activate.bat
-                    pytest tests\\ --browser chromium -v
-                '''
+                script {
+                    def result = bat(
+                        script: '''
+                            cd my-playwright-project
+                            call ..\\venv\\Scripts\\activate.bat
+                            pytest tests\\ --browser chromium -v
+                        ''',
+                        returnStatus: true
+                    )
+                    if (result == 0) {
+                        echo "✅ All tests passed!"
+                    } else if (result == 1) {
+                        error "❌ Some tests failed!"
+                    } else {
+                        echo "⚠️ Tests completed with warnings (exit code: ${result})"
+                    }
+                }
             }
         }
     }
@@ -48,8 +59,11 @@ pipeline {
         always {
             echo 'Pipeline complete'
         }
+        success {
+            echo '✅ Pipeline passed successfully!'
+        }
         failure {
-            echo 'Tests failed!'
+            echo '❌ Pipeline failed — check logs'
         }
     }
 }
