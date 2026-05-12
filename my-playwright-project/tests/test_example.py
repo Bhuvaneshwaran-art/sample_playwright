@@ -1,112 +1,43 @@
 import pytest
-from playwright.sync_api import Page, BrowserContext, expect
-
-@pytest.fixture(autouse=True)
-def clear_cookies(context: BrowserContext):
-    context.clear_cookies()
-    yield
+from playwright.sync_api import Page, expect
 
 def test_login(page: Page) -> None:
     page.set_default_timeout(60000)
     page.set_default_navigation_timeout(60000)
 
-    # Step 1 — Login
+    # Login
     page.goto("https://payv2.dev.adaptivegroups.asia/")
-    page.wait_for_load_state("domcontentloaded")
     page.get_by_role("textbox", name="Type Your Company Code").fill("Sidco")
     page.get_by_role("textbox", name="Type Your User Name").fill("Naveen")
     page.get_by_role("textbox", name="Type Your Password").fill("Adaptive*123")
     page.locator("input[value='Log In']").click()
-    page.wait_for_load_state("domcontentloaded")
-    page.wait_for_timeout(5000)
 
-    # Step 2 — Navigate to Company
+    # Wait for login to fully complete — wait for dashboard to appear
+    page.wait_for_load_state("domcontentloaded")
+    page.wait_for_timeout(3000)  # buffer for session to establish
+
+    # Navigate to Company
     page.goto("https://payv2.dev.adaptivegroups.asia/Company")
     page.wait_for_load_state("domcontentloaded")
-    page.wait_for_timeout(5000)
+    page.wait_for_timeout(3000)  # buffer for dynamic content to render
 
-     # Check if Details is inside iframe
-    frames = page.frames
-    print("\n=== ALL FRAMES ON PAGE ===")
-    for frame in frames:
-        print(frame.name, frame.url)
+    # Take screenshot to debug what's on screen
+    page.screenshot(path="company_page.png")
 
-    # Try clicking Details inside each frame
-    for frame in page.frames:
-        try:
-            if frame.locator("[title='Details']").count() > 0:
-                print(f"\n✅ Found Details in frame: {frame.url}")
-                frame.locator("[title='Details']").first.click()
-                break
-        except Exception as e:
-            print(f"Frame error: {e}")
-    page.wait_for_timeout(5000)
+    # Wait explicitly for Details to be visible before clicking
+    page.wait_for_selector("[title='Details']", state="visible", timeout=60000)
+    page.locator("[title='Details']").click()
 
-    # Step 5 — Organization Chart
-    try:
-                # Option 3 — by input value
-                page.locator("input[value='Organization Chart']").click()
-    except Exception as e:
-                print(f"Frame error: {e}")
+    page.wait_for_load_state("domcontentloaded")
+    page.get_by_role("button", name="Organization Chart").click()
 
-    page.wait_for_timeout(5000)
+    # Interact with dropdown
+    page.wait_for_selector("#structure-dropdown", state="visible")
+    page.locator("#structure-dropdown").select_option("false")
+    page.locator("#structure-dropdown").select_option("hierarchy")
 
-# Print all frames to find dropdown
-    print("\n=== ALL FRAMES AFTER ORG CHART CLICK ===")
-    for frame in page.frames:
-        print(f"Frame name: {frame.name} | URL: {frame.url}")
-        try:
-            count = frame.locator("#structure-dropdown").count()
-            if count > 0:
-                print(f"✅ Found #structure-dropdown in frame: {frame.url}")
-        except Exception as e:
-            print(f"Error: {e}")
-
-    # Try dropdown in main page first
-    dropdown_found = False
-
-    # Step 6 — Dropdown interactions
-    if not dropdown_found:
-        for frame in page.frames:
-            try:
-                if frame.locator("#structure-dropdown").count() > 0:
-                    print(f"Found dropdown in frame: {frame.url}")
-                    frame.locator("#structure-dropdown").select_option("false")
-                    dropdown_found = True
-                    break
-            except Exception as e:
-                print(f"Frame error: {e}")
-
-    # Step 7 — Button interactions
-    # Reset button — search in all frames
-    for frame in page.frames:
-        try:
-            if frame.locator("button[onclick='resetView()']").count() > 0:
-                print(f"✅ Found Reset in frame: {frame.url}")
-                frame.locator("button[onclick='resetView()']").click()
-                page.wait_for_timeout(2000)
-                break
-        except Exception as e:
-            print(f"Reset frame error: {e}")
-
-    # Collapse button — search in all frames
-    for frame in page.frames:
-        try:
-            if frame.locator("button[onclick='collapseAll()']").count() > 0:
-                print(f"✅ Found Collapse in frame: {frame.url}")
-                frame.locator("button[onclick='collapseAll()']").click()
-                page.wait_for_timeout(2000)
-                break
-        except Exception as e:
-            print(f"Collapse frame error: {e}")
-
-    # Expand button — search in all frames
-    for frame in page.frames:
-        try:
-            if frame.locator("button[onclick='expandAll()']").count() > 0:
-                print(f"✅ Found Expand in frame: {frame.url}")
-                frame.locator("button[onclick='expandAll()']").click()
-                page.wait_for_timeout(5000)
-                break
-        except Exception as e:
-            print(f"Expand frame error: {e}")
+    # Button interactions
+    page.wait_for_selector("button:has-text('Reset')", state="visible")
+    page.get_by_role("button", name="Reset").click()
+    page.get_by_role("button", name="Collapse").click()
+    page.get_by_role("button", name="Expand").click()
