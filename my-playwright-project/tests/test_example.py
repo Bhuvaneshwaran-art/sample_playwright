@@ -1,10 +1,24 @@
 import pytest
-from playwright.sync_api import Page, BrowserContext, expect
+from playwright.sync_api import Page, BrowserContext
 
 @pytest.fixture(autouse=True)
 def clear_cookies(context: BrowserContext):
     context.clear_cookies()
     yield
+
+def get_target_frame(page, selector):
+    """Find which frame contains the given selector"""
+    # Check main page first
+    if page.locator(selector).count() > 0:
+        return page
+    # Check all frames
+    for frame in page.frames:
+        try:
+            if frame.locator(selector).count() > 0:
+                return frame
+        except:
+            pass
+    return None
 
 def test_login(page: Page) -> None:
     page.set_default_timeout(60000)
@@ -25,63 +39,48 @@ def test_login(page: Page) -> None:
     page.wait_for_load_state("domcontentloaded")
     page.wait_for_timeout(5000)
 
-     # Check if Details is inside iframe
-    frames = page.frames
-    print("\n=== ALL FRAMES ON PAGE ===")
-    for frame in frames:
-        print(frame.name, frame.url)
-
-    # Try clicking Details inside each frame
-    for frame in page.frames:
-        try:
-            if frame.locator("[title='Details']").count() > 0:
-                print(f"\n✅ Found Details in frame: {frame.url}")
-                frame.locator("[title='Details']").first.click()
-                break
-        except Exception as e:
-            print(f"Frame error: {e}")
+    # Step 3 — Click Details (search in all frames)
+    details_frame = get_target_frame(page, "[title='Details']")
+    if details_frame:
+        print(f"✅ Details found in: {getattr(details_frame, 'url', 'main page')}")
+        details_frame.locator("[title='Details']").first.click()
+    else:
+        raise Exception("❌ Details element not found in any frame")
     page.wait_for_timeout(5000)
 
-    # Step 5 — Organization Chart
-    try:
-                # Option 3 — by input value
-                page.locator("input[value='Organization Chart']").click()
-    except Exception as e:
-                print(f"Frame error: {e}")
-
+    # Step 4 — Click Organization Chart (search in all frames)
+    org_frame = get_target_frame(page, "input[value='Organization Chart']")
+    if org_frame:
+        print(f"✅ Org Chart found in: {getattr(org_frame, 'url', 'main page')}")
+        org_frame.locator("input[value='Organization Chart']").click()
+    else:
+        raise Exception("❌ Organization Chart button not found in any frame")
     page.wait_for_timeout(5000)
 
-# Print all frames to find dropdown
-    print("\n=== ALL FRAMES AFTER ORG CHART CLICK ===")
-    for frame in page.frames:
-        print(f"Frame name: {frame.name} | URL: {frame.url}")
-        try:
-            count = frame.locator("#structure-dropdown").count()
-            if count > 0:
-                print(f"✅ Found #structure-dropdown in frame: {frame.url}")
-        except Exception as e:
-            print(f"Error: {e}")
+    # Step 5 — Find frame containing dropdown
+    dropdown_frame = get_target_frame(page, "#structure-dropdown")
+    if dropdown_frame:
+        print(f"✅ Dropdown found in: {getattr(dropdown_frame, 'url', 'main page')}")
+        dropdown_frame.locator("#structure-dropdown").select_option("false")
+        page.wait_for_timeout(3000)
+        dropdown_frame.locator("#structure-dropdown").select_option("hierarchy")
+        page.wait_for_timeout(3000)
+    else:
+        raise Exception("❌ Dropdown not found in any frame")
 
-    # Try dropdown in main page first
-    dropdown_found = False
+    # Step 6 — Find frame containing Reset button
+    reset_frame = get_target_frame(page, "button[onclick='resetView()']")
+    if reset_frame:
+        print(f"✅ Reset found in: {getattr(reset_frame, 'url', 'main page')}")
+        reset_frame.locator("button[onclick='resetView()']").click()
+        page.wait_for_timeout(2000)
+        reset_frame.locator("button[onclick='collapseAll()']").click()
+        page.wait_for_timeout(2000)
+        reset_frame.locator("button[onclick='expandAll()']").click()
+        page.wait_for_timeout(2000)
+    else:
+        raise Exception("❌ Reset button not found in any frame")
 
-    # Step 6 — Dropdown interactions
-    if not dropdown_found:
-        for frame in page.frames:
-            try:
-                if frame.locator("#structure-dropdown").count() > 0:
-                    print(f"Found dropdown in frame: {frame.url}")
-                    frame.locator("#structure-dropdown").select_option("false")
-                    dropdown_found = True
-                    break
-            except Exception as e:
-                print(f"Frame error: {e}")
-
-    # Step 7 — Button interactions
-    page.wait_for_selector("button[onclick='resetView()']")
-    page.locator("button[onclick='resetView()']").click()
-    page.wait_for_selector("button[onclick='collapseAll()']")
-    page.locator("button[onclick='collapseAll()']").click()
-    page.wait_for_selector("button[onclick='expandAll()']")
-    page.locator("button[onclick='expandAll()']").click()
-    page.wait_for_timeout(5000)
+    # Final screenshot
+    page.screenshot(path="debug_final.png", full_page=True)
+    print("✅ Test completed successfully!")
