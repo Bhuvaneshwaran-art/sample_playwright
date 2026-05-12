@@ -51,13 +51,33 @@ def test_login(page: Page) -> None:
 
     page.wait_for_timeout(5000)
 
+# Print all frames to find dropdown
+    print("\n=== ALL FRAMES AFTER ORG CHART CLICK ===")
+    for frame in page.frames:
+        print(f"Frame name: {frame.name} | URL: {frame.url}")
+        try:
+            count = frame.locator("#structure-dropdown").count()
+            if count > 0:
+                print(f"✅ Found #structure-dropdown in frame: {frame.url}")
+        except Exception as e:
+            print(f"Error: {e}")
+
+    # Try dropdown in main page first
+    dropdown_found = False
+
     # Step 6 — Dropdown interactions
-    if page.locator("#structure-dropdown").count() > 0:
-        print("Found dropdown in main page")
-    page.locator("#structure-dropdown").select_option("false")
-    page.wait_for_timeout(5000)
-    page.locator("#structure-dropdown").select_option("hierarchy")
-    page.wait_for_timeout(5000)
+    if not dropdown_found:
+        for frame in page.frames:
+            try:
+                if frame.locator("#structure-dropdown").count() > 0:
+                    print(f"Found dropdown in frame: {frame.url}")
+                    frame.locator("#structure-dropdown").select_option("false")
+                    page.wait_for_timeout(3000)
+                    frame.locator("#structure-dropdown").select_option("hierarchy")
+                    dropdown_found = True
+                    break
+            except Exception as e:
+                print(f"Frame error: {e}")
 
     # Step 7 — Button interactions
     page.get_by_role("button", name="Reset").click()
