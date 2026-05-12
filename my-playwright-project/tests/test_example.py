@@ -72,17 +72,16 @@ def test_login(page: Page) -> None:
                 if frame.locator("#structure-dropdown").count() > 0:
                     print(f"Found dropdown in frame: {frame.url}")
                     frame.locator("#structure-dropdown").select_option("false")
-                    page.wait_for_timeout(3000)
-                    frame.locator("#structure-dropdown").select_option("hierarchy")
                     dropdown_found = True
                     break
             except Exception as e:
                 print(f"Frame error: {e}")
 
     # Step 7 — Button interactions
-    page.get_by_role("button", name="Reset").click()
-    page.wait_for_timeout(5000)
-    page.get_by_role("button", name="Collapse").click()
-    page.wait_for_timeout(5000)
-    page.get_by_role("button", name="Expand").click()
+    page.wait_for_selector("button[onclick='resetView()']")
+    page.locator("button[onclick='resetView()']").click()
+    page.wait_for_selector("button[onclick='collapseAll()']")
+    page.locator("button[onclick='collapseAll()']").click()
+    page.wait_for_selector("button[onclick='expandAll()']")
+    page.locator("button[onclick='expandAll()']").click()
     page.wait_for_timeout(5000)
