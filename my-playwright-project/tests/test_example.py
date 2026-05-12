@@ -52,7 +52,8 @@ def test_login(page: Page) -> None:
     page.wait_for_timeout(5000)
 
     # Step 6 — Dropdown interactions
-    page.wait_for_selector("#structure-dropdown", state="visible")
+    if page.locator("#structure-dropdown").count() > 0:
+        print("Found dropdown in main page")
     page.locator("#structure-dropdown").select_option("false")
     page.wait_for_timeout(5000)
     page.locator("#structure-dropdown").select_option("hierarchy")
